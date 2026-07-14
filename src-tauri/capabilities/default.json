@@ -1,0 +1,58 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "description": "Capability for the all window",
+  "identifier": "default",
+  "permissions": [
+    "core:default",
+    "core:webview:allow-create-webview-window",
+    "core:window:allow-center",
+    "core:window:allow-close",
+    "core:window:allow-show",
+    "core:window:allow-set-title",
+    "core:window:allow-set-position",
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-theme",
+    "core:window:allow-is-always-on-top",
+    "core:window:allow-set-always-on-top",
+    "core:window:deny-internal-toggle-maximize",
+    "core:window:allow-set-size",
+    "core:window:allow-set-min-size",
+    "fs:read-all",
+    "fs:write-all",
+    "fs:allow-watch",
+    "fs:allow-unwatch",
+    {
+      "allow": ["**/*"],
+      "identifier": "fs:scope"
+    },
+    "autostart:default",
+    "log:default",
+    "sql:default",
+    "sql:allow-execute",
+    "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
+    "os:default",
+    "os:allow-hostname",
+    "dialog:default",
+    "updater:default",
+    "process:default",
+    "macos-permissions:default",
+    "fs-pro:default",
+    "locale:default",
+    "opener:default",
+    {
+      "allow": [
+        {
+          "path": "**/*"
+        }
+      ],
+      "identifier": "opener:allow-open-path"
+    },
+    "clipboard-x:default",
+    "pastex-window:default",
+    "pastex-paste:default",
+    "pastex-autostart:default"
+  ],
+  "windows": ["*"]
+}

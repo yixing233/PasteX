@@ -1,0 +1,91 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.2.0",
+  "app": {
+    "macOSPrivateApi": true,
+    "security": {
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": ["**/*"],
+          "requireLiteralLeadingDot": false
+        }
+      },
+      "csp": null,
+      "dangerousDisableAssetCspModification": true
+    },
+    "windows": [
+      {
+        "acceptFirstMouse": true,
+        "alwaysOnTop": false,
+        "decorations": false,
+        "height": 700,
+        "label": "main",
+        "maximizable": false,
+        "minHeight": 460,
+        "minWidth": 360,
+        "skipTaskbar": true,
+        "title": "PasteX",
+        "transparent": true,
+        "url": "index.html/#/",
+        "visible": false,
+        "visibleOnAllWorkspaces": true,
+        "width": 420
+      },
+      {
+        "center": true,
+        "dragDropEnabled": false,
+        "height": 480,
+        "hiddenTitle": true,
+        "label": "preference",
+        "maximizable": false,
+        "minHeight": 480,
+        "minWidth": 700,
+        "skipTaskbar": true,
+        "titleBarStyle": "Overlay",
+        "transparent": true,
+        "url": "index.html/#/preference",
+        "visible": false,
+        "width": 700,
+        "windowEffects": {
+          "effects": ["sidebar"],
+          "state": "active"
+        }
+      }
+    ]
+  },
+  "build": {
+    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": false,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": ["assets/tray.ico"],
+    "shortDescription": "PasteX",
+    "targets": ["nsis"]
+  },
+  "identifier": "com.pastex.app",
+  "mainBinaryName": "PasteX",
+  "plugins": {
+    "fs": {
+      "requireLiteralLeadingDot": false
+    },
+    "updater": {
+      "endpoints": [
+        "https://raw.githubusercontent.com/yixing233/PasteX/master/update.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEMxNDJFMkJDNDFEMkE0QzAKUldUQXBOSkJ2T0pDd1d2TWp1MEp3Y2ZSMXpXZ2FHVE91ZjJWNE5sbmJCTm9yaVNubnRMdldQWW8K"
+    }
+  },
+  "productName": "PasteX",
+  "version": "3.0.0"
+}

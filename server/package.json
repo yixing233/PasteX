@@ -1,0 +1,25 @@
+{
+  "author": "xchengb04",
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "sharp": "^0.34.5",
+    "ws": "^8.16.0"
+  },
+  "description": "PasteX clipboard sync server",
+  "keywords": [
+    "clipboard",
+    "sync",
+    "websocket"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "pastex-sync-server",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js"
+  },
+  "type": "module",
+  "version": "2.0.0"
+}

@@ -1,0 +1,11 @@
+{
+  "notes": "完成 PasteX 项目标识与内部插件命名整理；新增多语言开源致谢页面；项目仓库、问题反馈、版本发布和应用内检查更新链接统一迁移至 GitHub；清理遗留的同步与 AUR 发布配置。",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUQXBOSkJ2T0pDd2F6RWVESVFqT2Jld0tZQWpMMlZCRHpHNyt0QkUwR2pXYWdmaXlmWU82RkxDbXRwajZiZDFUYTVZSmdLZlZ0RXhDWWZxSER0Ymk2eHdTTi9hSEdieXdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0MDE2NjMzCWZpbGU6UGFzdGVYXzMuMC4wX3g2NC1zZXR1cC5leGUKRDhuYmNaSmhYdXlYNVpuVXFOUkVkVTZscUhvVDhQeEgwWXNPZkEvNXZjUUVRdkN3eUtxbHA3T1JuSDUzWG5KU1UzVGNTSTFNUFdtVzVHOVRtQjBKQ3c9PQo=",
+      "url": "https://github.com/yixing233/PasteX/releases/download/3.0.0/PasteX_3.0.0_x64-setup.exe"
+    }
+  },
+  "pub_date": "2026-07-14T16:10:49+08:00",
+  "version": "v3.0.0"
+}

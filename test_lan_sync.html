@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PasteX 局域网同步测试</title>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --surface: #1a1a1a;
+            --surface2: #242424;
+            --border: #2e2e2e;
+            --text1: #e8e8e8;
+            --text2: #a0a0a0;
+            --text3: #606060;
+            --primary: #1677ff;
+            --primary-hover: #4096ff;
+            --success: #52c41a;
+            --error: #ff4d4f;
+            --warn: #faad14;
+            --ws: #722ed1;
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text1);
+            padding: 24px 16px;
+            min-height: 100vh;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .app {
+            max-width: 640px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        header .badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: var(--surface2);
+            color: var(--text2);
+            border: 1px solid var(--border);
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        .card-header .label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text2);
+        }
+
+        .card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field label {
+            font-size: 12px;
+            color: var(--text2);
+            font-weight: 500;
+        }
+
+        input,
+        textarea,
+        select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text1);
+            padding: 8px 12px;
+            font-size: 14px;
+            width: 100%;
+            font-family: inherit;
+            transition: border-color 0.15s;
+            outline: none;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        select {
+            width: auto;
+            cursor: pointer;
+            padding-right: 28px;
+        }
+
+        option {
+            background: var(--surface2);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            filter: brightness(1.1);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text2);
+            border-color: var(--border);
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: var(--surface2);
+            color: var(--text1);
+        }
+
+        .btn-ws {
+            background: var(--ws);
+            color: #fff;
+            border-color: var(--ws);
+        }
+
+        .btn-ws:hover:not(:disabled) {
+            filter: brightness(1.15);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--error);
+            border-color: #ff4d4f55;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #ff4d4f15;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text2);
+        }
+
+        .status-pill .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--text3);
+            flex-shrink: 0;
+        }
+
+        .status-pill.ok .dot {
+            background: var(--success);
+            box-shadow: 0 0 4px var(--success);
+        }
+
+        .status-pill.ok {
+            color: var(--success);
+            border-color: #52c41a44;
+        }
+
+        .status-pill.err .dot {
+            background: var(--error);
+        }
+
+        .status-pill.err {
+            color: var(--error);
+            border-color: #ff4d4f44;
+        }
+
+        .status-pill.loading .dot {
+            background: var(--primary);
+            animation: pulse 1s infinite;
+        }
+
+        .status-pill.loading {
+            color: var(--primary);
+            border-color: #1677ff44;
+        }
+
+        .status-pill.ws-live .dot {
+            background: var(--ws);
+            box-shadow: 0 0 5px var(--ws);
+            animation: pulse 2s infinite;
+        }
+
+        .status-pill.ws-live {
+            color: var(--ws);
+            border-color: #722ed144;
+        }
+
+        .card.ws-card {
+            border-color: #722ed133;
+        }
+
+        .ws-card .card-header {
+            background: #722ed10a;
+        }
+
+        .ws-url-display {
+            font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+            font-size: 11px;
+            color: var(--text3);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 6px 10px;
+            word-break: break-all;
+        }
+
+        .result-box.ws-highlight {
+            border-color: #722ed155;
+        }
+
+        .source-tag {
+            display: inline-block;
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: #722ed122;
+            color: var(--ws);
+            border: 1px solid #722ed133;
+            font-weight: 600;
+        }
+
+        .source-tag.http {
+            background: #1677ff15;
+            color: var(--primary);
+            border-color: #1677ff33;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .4
+            }
+        }
+
+        .result-box {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+            color: var(--text1);
+            min-height: 60px;
+            line-height: 1.5;
+        }
+
+        .result-box.placeholder {
+            color: var(--text3);
+            font-family: inherit;
+        }
+
+        .result-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .log-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border);
+            color: var(--text2);
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-item .log-time {
+            color: var(--text3);
+            flex-shrink: 0;
+        }
+
+        .log-item .log-msg {
+            flex: 1;
+        }
+
+        .log-item.ok .log-msg {
+            color: var(--success);
+        }
+
+        .log-item.err .log-msg {
+            color: var(--error);
+        }
+
+        .log-item.ws .log-msg {
+            color: var(--ws);
+        }
+
+        .log-item.warn .log-msg {
+            color: var(--warn);
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .row-space {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 12px;
+            color: var(--text2);
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        .toggle-track {
+            width: 32px;
+            height: 18px;
+            background: var(--border);
+            border-radius: 20px;
+            transition: background 0.2s;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform 0.2s;
+        }
+
+        .toggle-switch input:checked+.toggle-track {
+            background: var(--primary);
+        }
+
+        .toggle-switch input:checked+.toggle-track::after {
+            transform: translateX(14px);
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <header>
+            <div>🔗</div>
+            <h1>PasteX 同步测试</h1>
+            <span id="modeBadge" class="badge">LAN · :19527</span>
+        </header>
+
+        <!-- 服务器配置 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="label">⚙️ 服务器配置</span>
+                <div id="connStatus" class="status-pill">
+                    <span class="dot"></span><span>未测试</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <input id="baseUrl" type="text" placeholder="http://192.168.1.x:19527"
+                        value="http://127.0.0.1:19527" spellcheck="false" oninput="onCfgChange()">
+                    <button class="btn btn-ghost" onclick="pingServer()" style="flex-shrink:0;">测试连接</button>
+                </div>
+                <div class="row" style="gap:8px;align-items:flex-start;">
+                    <div class="field" style="flex:0 0 140px;">
+                        <label style="font-size:12px;color:var(--text2);font-weight:500;">
+                            纽带用户名
+                            <span style="color:var(--text3);font-weight:400;">（可选）</span>
+                        </label>
+                        <input id="bondUsername" type="text" placeholder="username" spellcheck="false"
+                            oninput="onCfgChange()">
+                    </div>
+                    <div class="field" style="flex:1;">
+                        <label style="font-size:12px;color:var(--text2);font-weight:500;">
+                            密钥 Secret Key
+                            <span style="color:var(--text3);font-weight:400;">（远程必填，LAN 留空）</span>
+                        </label>
+                        <input id="bondSecretKey" type="password" placeholder="在 PasteX → 同步 → 远程 中查看密钥"
+                            spellcheck="false" oninput="onCfgChange()">
+                    </div>
+                </div>
+                <div class="row" style="gap:6px;flex-wrap:wrap;">
+                    <button class="btn btn-ghost" onclick="setBase('127.0.0.1')"
+                        style="font-size:12px;padding:4px 10px;">本机 LAN</button>
+                    <button class="btn btn-ghost" onclick="setBase('198.18.0.1')"
+                        style="font-size:12px;padding:4px 10px;">198.18.0.1</button>
+                    <span id="modeHint" style="font-size:12px;color:var(--text3);margin-left:auto;">
+                        在 PasteX → 同步 → 局域网 中查看 IP
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- WebSocket 卡片（远程模式专用） -->
+        <div id="wsCard" class="card ws-card" style="display:none;">
+            <div class="card-header">
+                <span class="label">⚡ WebSocket 实时连接</span>
+                <div id="wsStatus" class="status-pill">
+                    <span class="dot"></span><span>未连接</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="wsUrlDisplay" class="ws-url-display">—</div>
+                <div class="row" style="gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-ws" id="wsConnectBtn" onclick="wsConnect()">连接 WS</button>
+                    <button class="btn btn-danger" id="wsDisconnectBtn" onclick="wsDisconnect()" disabled>断开</button>
+                    <span style="font-size:12px;color:var(--text3);">连接后实时接收 LATEST_UPDATE，无需轮询</span>
+                </div>
+                <div
+                    style="background:var(--surface2);border:1px solid #722ed133;border-radius:6px;padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.8;">
+                    <div style="color:var(--ws);font-weight:600;margin-bottom:4px;">⚡ PasteX 客户端需满足以下条件才会推送</div>
+                    <div>① PasteX → 同步 → <b>设置服务器地址</b>（同一服务器）</div>
+                    <div>② PasteX → 同步 → <b>创建/装配纽带</b>（用户名 + 密钥与此页一致）</div>
+                    <div>③ PasteX → 同步 → <b>实时同步 → 开启</b>（切换为启用）</div>
+                    <div>④ PasteX → 同步 → 实时同步 → 模式选 <b>「远程同步」</b></div>
+                    <div style="margin-top:6px;color:var(--text3);">满足后，PasteX 每次复制都会发送 PUSH_LATEST，此页 WS 立即收到
+                        LATEST_UPDATE</div>
+                </div>
+                <div
+                    style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:10px;">
+                    <div class="row-space">
+                        <span style="font-size:12px;color:var(--text2);font-weight:500;">通过 WS 发送测试数据</span>
+                        <span style="font-size:11px;color:var(--text3);">PUSH_LATEST → 服务器 → LATEST_UPDATE</span>
+                    </div>
+                    <textarea id="wsPushContent" style="min-height:60px;"
+                        placeholder="输入要通过 WebSocket 发送的文本...（Ctrl+Enter 发送）">这是通过 WS 推送的测试内容 🚀</textarea>
+                    <div class="row-space">
+                        <span id="wsPushMeta" style="font-size:12px;color:var(--text3);">等待发送</span>
+                        <button class="btn btn-ws" id="wsPushBtn" onclick="wsPushLatest()" disabled
+                            style="padding:6px 14px;font-size:12px;">⚡ WS 发送</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pull -->
+        <div class="card">
+            <div class="card-header">
+                <span class="label">📥 拉取剪贴板 <code id="pullEndpointLabel"
+                        style="font-size:11px;color:var(--text3);">GET /latest</code></span>
+                <div class="row" style="gap:8px;">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoToggle" onchange="toggleAuto()">
+                        <span class="toggle-track"></span>
+                        轮询
+                    </label>
+                    <select id="autoInterval" style="font-size:12px;padding:4px 8px;">
+                        <option value="1000">1s</option>
+                        <option value="2000" selected>2s</option>
+                        <option value="5000">5s</option>
+                        <option value="10000">10s</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="result-meta">
+                    <div class="row" style="gap:8px;">
+                        <span id="pullMeta" style="font-size:12px;color:var(--text3);">—</span>
+                        <span id="pullSourceHttp" class="source-tag http" style="display:none;">HTTP</span>
+                        <span id="pullSourceWs" class="source-tag" style="display:none;">WS 实时</span>
+                    </div>
+                    <div class="row" style="gap:6px;">
+                        <button class="btn btn-ghost" id="copyBtn" onclick="copyResult()" disabled
+                            style="font-size:12px;padding:4px 10px;">复制内容</button>
+                        <button class="btn btn-primary" onclick="fetchLatest()">HTTP 拉取</button>
+                    </div>
+                </div>
+                <div id="pullResult" class="result-box placeholder">点击「HTTP 拉取」或连接 WS 等待实时推送...</div>
+            </div>
+        </div>
+
+        <!-- Push (LAN only) -->
+        <div id="pushCard" class="card">
+            <div class="card-header">
+                <span id="pushCardLabel" class="label">📤 推送到电脑 <code
+                        style="font-size:11px;color:var(--text3);">POST /push</code></span>
+            </div>
+            <div class="card-body">
+                <textarea id="pushContent"
+                    placeholder="输入要推送到电脑剪贴板的文本...&#10;（Ctrl+Enter 快速发送）">这是一条来自手机的测试消息 🎉</textarea>
+                <div class="row-space">
+                    <span id="pushCharCount" style="font-size:12px;color:var(--text3);">17 字符</span>
+                    <div class="row" style="gap:6px;">
+                        <button class="btn btn-ghost" onclick="clearPush()"
+                            style="font-size:12px;padding:4px 10px;">清空</button>
+                        <button class="btn btn-success" onclick="pushToPC()">推送</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作日志 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="label">📋 操作日志</span>
+                <button class="btn btn-ghost" onclick="clearLog()" style="font-size:12px;padding:4px 10px;">清空</button>
+            </div>
+            <div class="card-body" style="padding:12px 16px;">
+                <div id="logList" class="log-list">
+                    <div class="log-item">
+                        <span class="log-time">—</span>
+                        <span class="log-msg">等待操作...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ===== State ===== */
+        let autoTimer = null;
+        let lastContent = null;
+        let ws = null;
+        let wsReconnectTimer = null;
+        let wsManualClose = false;
+
+        /* ===== Config helpers ===== */
+
+        function getBase() {
+            return document.getElementById('baseUrl').value.trim().replace(/\/+$/, '');
+        }
+
+        // 构造 Bond Token（与 useSync.ts line 381 一致）
+        // 格式：encodeURIComponent(username):secretKey 或仅 secretKey
+        function getBondToken() {
+            const username = document.getElementById('bondUsername').value.trim();
+            const secretKey = document.getElementById('bondSecretKey').value.trim();
+            if (!secretKey) return '';
+            return username ? `${encodeURIComponent(username)}:${secretKey}` : secretKey;
+        }
+
+        function getMode() {
+            if (getBondToken()) return 'remote';
+            const url = getBase();
+            const port = url.match(/:(\d+)(?:\/|$)/)?.[1] ?? '';
+            return (port === '19527' || port === '') ? 'lan' : 'remote';
+        }
+
+        function getLatestUrl() {
+            return getMode() === 'remote' ? `${getBase()}/api/latest` : `${getBase()}/latest`;
+        }
+
+        function getPushUrl() { return `${getBase()}/push`; }
+
+        function getAuthHeaders() {
+            const token = getBondToken();
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        }
+
+        // 构造 WS URL：与 useSync.ts 保持一致
+        // PasteX 对 token 做了两层处理：
+        //   1. token = encodeURIComponent(username) + ":" + secretKey
+        //   2. URL 参数再做一次 encodeURIComponent(token)
+        // 服务端 URL 解析自动 decode 一层，最终 token = encodeURIComponent(username):secretKey
+        function getWsUrl() {
+            const base = getBase().replace(/^https?/, m => m === 'https' ? 'wss' : 'ws');
+            const token = getBondToken();
+            // 必须与 useSync.ts 同样做一次 encodeURIComponent，否则 secretKey 含特殊字符时 tokenHash 不匹配
+            return token ? `${base}/ws?token=${encodeURIComponent(token)}` : null;
+        }
+
+        /* ===== Response parser ===== */
+
+        function parseLatestData(data) {
+            if (getMode() === 'remote') {
+                if (!data.success) throw new Error(data.error ?? '服务器返回失败');
+                const item = data.data;
+                if (!item) return { content: '', type: '' };
+                return { content: item.value ?? '', type: item.type ?? 'text' };
+            } else {
+                if (data.error) throw new Error(data.error);
+                return { content: data.content ?? '', type: data.type ?? 'text' };
+            }
+        }
+
+        /* ===== UI config change ===== */
+
+        function onCfgChange() {
+            const mode = getMode();
+            const isRemote = mode === 'remote';
+            document.getElementById('modeBadge').textContent = isRemote ? '远程 · :7755' : 'LAN · :19527';
+            document.getElementById('pullEndpointLabel').textContent = isRemote ? 'GET /api/latest' : 'GET /latest';
+            document.getElementById('modeHint').textContent = isRemote
+                ? 'latestStore 由 WS PUSH_LATEST 事件填充，重启服务器后清空'
+                : 'PasteX → 同步 → 局域网 中查看 IP';
+            document.getElementById('wsCard').style.display = isRemote ? '' : 'none';
+            const pushCard = document.getElementById('pushCard');
+            pushCard.style.opacity = isRemote ? '0.35' : '1';
+            pushCard.style.pointerEvents = isRemote ? 'none' : '';
+
+            if (isRemote) {
+                const wsUrl = getWsUrl();
+                const display = document.getElementById('wsUrlDisplay');
+                display.textContent = wsUrl ?? '（请填写密钥以生成 WS 地址）';
+                display.style.color = wsUrl ? '' : 'var(--text3)';
+            }
+
+            // 配置变更时断开现有 WS
+            if (ws) wsDisconnect();
+        }
+
+        function setBase(ip) {
+            const old = document.getElementById('baseUrl').value;
+            const port = old.match(/:(\d+)(?:\/|$)/)?.[1] || '19527';
+            document.getElementById('baseUrl').value = `http://${ip}:${port}`;
+            onCfgChange();
+        }
+
+        /* ===== WebSocket ===== */
+
+        function setWsStatus(state, text) {
+            const el = document.getElementById('wsStatus');
+            el.className = `status-pill ${state}`;
+            el.innerHTML = `<span class="dot"></span><span>${text}</span>`;
+        }
+
+        function getWebClientInfo() {
+            let clientId = localStorage.getItem('pastex_web_test_client_id');
+            if (!clientId) {
+                clientId = `web-${crypto.randomUUID()}`;
+                localStorage.setItem('pastex_web_test_client_id', clientId);
+            }
+
+            return {
+                id: clientId,
+                hostname: 'Web-Test',
+                appVersion: 'web-test',
+                platform: navigator.platform || 'web',
+                osType: 'WebBrowser',
+                osVersion: navigator.userAgent,
+                arch: 'web',
+                language: navigator.language,
+                userAgent: navigator.userAgent,
+                timestamp: Date.now(),
+                source: 'test_lan_sync.html',
+            };
+        }
+
+        function wsConnect() {
+            const wsUrl = getWsUrl();
+            if (!wsUrl) { log('请先填写密钥 Secret Key', 'err'); return; }
+            if (ws && ws.readyState <= 1) wsDisconnect();
+            wsManualClose = false;
+
+            setWsStatus('loading', '连接中...');
+            document.getElementById('wsConnectBtn').disabled = true;
+            document.getElementById('wsDisconnectBtn').disabled = false;
+            document.getElementById('wsPushBtn').disabled = true;
+
+            document.getElementById('wsUrlDisplay').textContent = wsUrl;
+            log(`[WS] 连接中 → ${wsUrl}`, 'ws');
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                setWsStatus('ws-live', '已连接');
+                document.getElementById('wsPushBtn').disabled = false;
+                ws.send(JSON.stringify({
+                    type: 'CLIENT_INFO',
+                    payload: getWebClientInfo(),
+                }));
+                log('[WS] 连接成功，监听 LATEST_UPDATE 实时事件', 'ws');
+                log('[WS] → CLIENT_INFO: 已上报网页测试设备信息', 'ws');
+            };
+
+            ws.onmessage = (evt) => {
+                let msg;
+                try { msg = JSON.parse(evt.data); } catch { return; }
+                const { type, payload, data } = msg;
+                if (type === 'LATEST_UPDATE') {
+                    log(`[WS] ← LATEST_UPDATE [${payload?.type ?? '?'}]: "${String(payload?.value ?? '').slice(0, 50)}"`, 'ws');
+                    displayContent(payload, 'ws');
+                } else if (type === 'SYNC_ALL') {
+                    log(`[WS] ← SYNC_ALL，共 ${Array.isArray(data) ? data.length : '?'} 条收藏记录`, 'ws');
+                } else if (type === 'ADD' || type === 'UPDATE' || type === 'DELETE') {
+                    log(`[WS] ← ${type} 收藏条目事件`, 'ws');
+                } else {
+                    log(`[WS] ← ${type}`, 'ws');
+                }
+            };
+
+            ws.onerror = () => {
+                setWsStatus('err', '连接错误');
+                log('[WS] 连接错误（地址/密钥可能有误）', 'err');
+            };
+
+            ws.onclose = (evt) => {
+                ws = null;
+                setWsStatus('err', '已断开');
+                document.getElementById('wsConnectBtn').disabled = false;
+                document.getElementById('wsDisconnectBtn').disabled = true;
+                document.getElementById('wsPushBtn').disabled = true;
+                if (!wsManualClose) {
+                    log(`[WS] 连接断开 (code ${evt.code})，5s 后自动重连...`, 'warn');
+                    wsReconnectTimer = setTimeout(() => { if (!wsManualClose) wsConnect(); }, 5000);
+                } else {
+                    log('[WS] 已主动断开', 'ws');
+                }
+            };
+        }
+
+        function wsDisconnect() {
+            wsManualClose = true;
+            clearTimeout(wsReconnectTimer);
+            if (ws) { ws.close(); ws = null; }
+            setWsStatus('', '未连接');
+            document.getElementById('wsConnectBtn').disabled = false;
+            document.getElementById('wsDisconnectBtn').disabled = true;
+            document.getElementById('wsPushBtn').disabled = true;
+        }
+
+        function wsPushLatest() {
+            if (!ws || ws.readyState !== 1) { log('[WS] 未连接，请先点击「连接 WS」', 'err'); return; }
+            const content = document.getElementById('wsPushContent').value;
+            if (!content.trim()) { log('推送内容不能为空', 'err'); return; }
+
+            const payload = {
+                id: `test-${Date.now()}`,
+                type: 'text',
+                value: content,
+                group: 'text',
+                search: content.toLowerCase().slice(0, 200),
+                favorite: false,
+                createTime: new Date().toISOString(),
+                source: 'test-page',
+            };
+
+            ws.send(JSON.stringify({ type: 'PUSH_LATEST', payload }));
+            document.getElementById('wsPushMeta').textContent =
+                `已发送 ${content.length} 字符 · ${ts()} · 等待 LATEST_UPDATE 回调`;
+            log(`[WS] → PUSH_LATEST: "${content.slice(0, 60)}${content.length > 60 ? '…' : ''}"`, 'ws');
+        }
+
+        /* ===== Display content ===== */
+
+        function displayContent(item, source) {
+            // source = 'ws' | 'http'
+            // ws: item is DatabaseSchemaHistory (has .value, .type)
+            // http: item is { content, type } already parsed
+            const content = source === 'ws' ? (item?.value ?? '') : (item.content ?? '');
+            const itemType = source === 'ws' ? (item?.type ?? 'text') : (item.type ?? 'text');
+
+            const resultEl = document.getElementById('pullResult');
+            const metaEl = document.getElementById('pullMeta');
+            const copyBtn = document.getElementById('copyBtn');
+
+            const isNew = content !== lastContent;
+            lastContent = content;
+
+            const isText = itemType === 'text' || !itemType;
+            const displayTxt = isText
+                ? (content || '(剪贴板为空)')
+                : `[${itemType} 类型，无法在此预览]`;
+
+            resultEl.textContent = displayTxt;
+            resultEl.className = 'result-box' + (content ? '' : ' placeholder') + (source === 'ws' ? ' ws-highlight' : '');
+
+            document.getElementById('pullSourceHttp').style.display = source === 'http' ? '' : 'none';
+            document.getElementById('pullSourceWs').style.display = source === 'ws' ? '' : 'none';
+
+            const len = content.length;
+            const lines = content ? content.split('\n').length : 0;
+            metaEl.textContent = [
+                itemType && itemType !== 'text' ? `[${itemType}]` : '',
+                len ? `${len} 字符` : '空',
+                lines > 1 ? `${lines} 行` : '',
+            ].filter(Boolean).join(' · ');
+
+            copyBtn.disabled = !content || !isText;
+
+            if (isNew && source === 'http') {
+                log(`HTTP 拉取${itemType ? ` [${itemType}]` : ''}: "${content.slice(0, 60)}${content.length > 60 ? '…' : ''}"`, 'ok');
+            }
+        }
+
+        /* ===== HTTP ===== */
+
+        function setConnStatus(state, text) {
+            const el = document.getElementById('connStatus');
+            el.className = `status-pill ${state}`;
+            el.innerHTML = `<span class="dot"></span><span>${text}</span>`;
+        }
+
+        async function pingServer() {
+            setConnStatus('loading', '测试中...');
+            try {
+                const r = await fetch(getLatestUrl(), {
+                    headers: getAuthHeaders(),
+                    signal: AbortSignal.timeout(3000),
+                });
+                const ok = r.ok || (getMode() === 'remote' && r.status === 404);
+                if (ok) {
+                    setConnStatus('ok', '已连接');
+                    log(`HTTP 连接成功 [${getMode().toUpperCase()}] → ${getBase()}`, 'ok');
+                } else {
+                    setConnStatus('err', `HTTP ${r.status}`);
+                    log(`服务器返回 ${r.status}${r.status === 401 ? ' (密钥错误或缺失)' : ''}`, 'err');
+                }
+            } catch (e) {
+                setConnStatus('err', '连接失败');
+                log(`HTTP 连接失败: ${e.message}`, 'err');
+            }
+        }
+
+        async function fetchLatest() {
+            const t0 = Date.now();
+            try {
+                const r = await fetch(getLatestUrl(), {
+                    headers: getAuthHeaders(),
+                    signal: AbortSignal.timeout(4000),
+                });
+                const ms = Date.now() - t0;
+
+                // 远程 404 = latestStore 无数据，属于正常（未推送过）
+                if (r.status === 404 && getMode() === 'remote') {
+                    setConnStatus('ok', '已连接');
+                    const wasHasData = lastContent !== null && lastContent !== '';
+                    lastContent = '';
+                    const el = document.getElementById('pullResult');
+                    el.textContent = '(无数据) — latestStore 为空\n\n可能原因：\n· PasteX「实时同步」未开启或模式不是「远程」\n· PasteX 尚未复制任何内容（PUSH_LATEST 未发送）\n· 服务器重启后内存已清空\n\n→ 可使用上方「⚡ WS 发送」直接写入并验证完整链路';
+                    el.className = 'result-box placeholder';
+                    document.getElementById('pullMeta').textContent = `latestStore 空 · ${ms}ms`;
+                    document.getElementById('copyBtn').disabled = true;
+                    document.getElementById('pullSourceHttp').style.display = 'none';
+                    document.getElementById('pullSourceWs').style.display = 'none';
+                    if (wasHasData) log('latestStore 已清空（服务器重启？）', 'warn');
+                    else if (!autoTimer) log(`HTTP 拉取：latestStore 暂无数据 (${ms}ms)`, '');
+                    return;
+                }
+
+                if (!r.ok) throw new Error(`HTTP ${r.status}${r.status === 401 ? ' (密钥错误)' : ''}`);
+
+                setConnStatus('ok', '已连接');
+                const data = await r.json();
+                let parsed;
+                try { parsed = parseLatestData(data); } catch (e) {
+                    log(`解析失败: ${e.message}`, 'err');
+                    return;
+                }
+                displayContent(parsed, 'http');
+                const metaEl = document.getElementById('pullMeta');
+                metaEl.textContent = (metaEl.textContent ? metaEl.textContent + ' · ' : '') + `${ms}ms`;
+
+            } catch (e) {
+                setConnStatus('err', '失败');
+                if (!autoTimer) {
+                    const el = document.getElementById('pullResult');
+                    el.textContent = `连接失败: ${e.message}\n\n请检查：\n· ${getMode() === 'remote' ? '密钥/用户名是否正确' : '局域网同步是否已启用（PasteX → 同步 → 局域网）'}\n· IP 地址与端口是否正确\n· 设备是否在同一网络`;
+                    el.className = 'result-box placeholder';
+                    log(`HTTP 拉取失败: ${e.message}`, 'err');
+                }
+            }
+        }
+
+        /* ===== Copy ===== */
+
+        function copyResult() {
+            const text = document.getElementById('pullResult').textContent;
+            if (!text || text.startsWith('(') || text.startsWith('[')) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const orig = btn.textContent;
+                btn.textContent = '已复制 ✓';
+                setTimeout(() => btn.textContent = orig, 1500);
+                log('已复制到本地剪贴板', 'ok');
+            });
+        }
+
+        /* ===== LAN Push ===== */
+
+        async function pushToPC() {
+            if (getMode() === 'remote') {
+                log('远程模式不支持 REST 推送，请使用「⚡ WS 发送」', 'warn');
+                return;
+            }
+            const content = document.getElementById('pushContent').value;
+            if (!content.trim()) { log('推送内容不能为空', 'err'); return; }
+            try {
+                const r = await fetch(getPushUrl(), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, type: 'text' }),
+                    signal: AbortSignal.timeout(4000),
+                });
+                const data = await r.json();
+                if (data.success) {
+                    log(`LAN 推送成功: "${content.slice(0, 60)}${content.length > 60 ? '…' : ''}"`, 'ok');
+                    setConnStatus('ok', '已连接');
+                } else {
+                    log(`推送失败: ${data.error ?? '未知错误'}`, 'err');
+                }
+            } catch (e) {
+                log(`推送失败: ${e.message}`, 'err');
+            }
+        }
+
+        function clearPush() {
+            document.getElementById('pushContent').value = '';
+            document.getElementById('pushCharCount').textContent = '0 字符';
+        }
+
+        /* ===== Auto poll ===== */
+
+        function toggleAuto() {
+            const on = document.getElementById('autoToggle').checked;
+            if (on) {
+                const interval = parseInt(document.getElementById('autoInterval').value);
+                fetchLatest();
+                autoTimer = setInterval(fetchLatest, interval);
+                log(`HTTP 自动轮询已开启（每 ${interval / 1000}s）`);
+            } else {
+                clearInterval(autoTimer);
+                autoTimer = null;
+                log('HTTP 自动轮询已关闭');
+            }
+        }
+
+        /* ===== Log ===== */
+
+        function ts() {
+            return new Date().toLocaleTimeString('zh-CN', { hour12: false });
+        }
+
+        function log(msg, type = '') {
+            const list = document.getElementById('logList');
+            const isPlaceholder = list.children.length === 1 &&
+                list.children[0].querySelector('.log-time')?.textContent === '—';
+            if (isPlaceholder) list.innerHTML = '';
+            const item = document.createElement('div');
+            item.className = `log-item ${type}`;
+            item.innerHTML = `<span class="log-time">${ts()}</span><span class="log-msg">${msg}</span>`;
+            list.prepend(item);
+            if (list.children.length > 80) list.lastChild.remove();
+        }
+
+        function clearLog() {
+            document.getElementById('logList').innerHTML =
+                '<div class="log-item"><span class="log-time">—</span><span class="log-msg">日志已清空</span></div>';
+        }
+
+        /* ===== Listeners ===== */
+
+        document.getElementById('autoInterval').addEventListener('change', () => {
+            if (!autoTimer) return;
+            clearInterval(autoTimer);
+            const interval = parseInt(document.getElementById('autoInterval').value);
+            autoTimer = setInterval(fetchLatest, interval);
+            log(`HTTP 轮询间隔更新为 ${interval / 1000}s`);
+        });
+
+        document.getElementById('pushContent').addEventListener('input', e => {
+            document.getElementById('pushCharCount').textContent = `${e.target.value.length} 字符`;
+        });
+
+        document.getElementById('pushContent').addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') pushToPC();
+        });
+
+        document.getElementById('wsPushContent').addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') wsPushLatest();
+        });
+
+        // 初始化
+        document.getElementById('pushCharCount').textContent =
+            `${document.getElementById('pushContent').value.length} 字符`;
+    </script>
+</body>
+
+</html>

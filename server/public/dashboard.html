@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PasteX Server Dashboard</title>
+    <link rel="icon" type="image/png" href="/PasteX.png">
+
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Day.js -->
+    <script src="https://unpkg.com/dayjs/dayjs.min.js"></script>
+    <script src="https://unpkg.com/dayjs/plugin/relativeTime.js"></script>
+    <script>dayjs.extend(dayjs_plugin_relativeTime);</script>
+
+    <!-- Ant Design -->
+    <script src="https://unpkg.com/antd@5.12.2/dist/antd.min.js"></script>
+
+    <!-- Ant Design Icons -->
+    <script src="https://unpkg.com/@ant-design/icons@5.2.6/dist/index.umd.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1677ff',
+                        'primary-bg': '#e6f7ff',
+                        dark: {
+                            bg: '#0d1117', // Github Dark Dimmed Style
+                            surface: '#161b22',
+                            border: '#30363d',
+                        }
+                    },
+                    borderRadius: {
+                        'card': '12px',
+                    },
+                    boxShadow: {
+                        'card': '0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #3c444d;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6e7681;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .dark .glass-card {
+            background: rgba(22, 27, 34, 0.8);
+            border: 1px solid rgba(48, 54, 61, 0.6);
+        }
+
+        .stats-card-icon {
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:hover .stats-card-icon {
+            transform: scale(1.1);
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-slide-in {
+            animation: fadeSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+
+        .latest-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 transparent;
+        }
+
+        .dark .latest-scroll {
+            scrollbar-color: #6e7681 transparent;
+        }
+
+        .latest-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .latest-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .latest-scroll::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 999px;
+        }
+
+        .dark .latest-scroll::-webkit-scrollbar-thumb {
+            background: #6e7681;
+        }
+
+        .latest-scroll::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .dark .latest-scroll::-webkit-scrollbar-thumb:hover {
+            background: #8b949e;
+        }
+
+        .dashboard-tabs {
+            min-height: 0;
+        }
+
+        .dashboard-tabs .ant-tabs-content-holder,
+        .dashboard-tabs .ant-tabs-content,
+        .dashboard-tabs .ant-tabs-tabpane {
+            height: 100%;
+            min-height: 0;
+        }
+
+        /* View Transition Animation */
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation: none;
+            mix-blend-mode: normal;
+        }
+
+        /* Custom Mask Styles */
+        .ant-image-preview-mask,
+        .ant-image-preview-wrap,
+        .ant-modal-mask {
+            background-color: rgba(0, 0, 0, 0.2) !important;
+            backdrop-filter: blur(10px) !important;
+        }
+
+        ::view-transition-old(root) {
+            z-index: 1;
+        }
+
+        ::view-transition-new(root) {
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body class="bg-[#f5f7fa] dark:bg-[#0d1117] transition-colors duration-300">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+        const { flushSync } = ReactDOM;
+        const {
+            Layout, Menu, Table, Card, Statistic, Row, Col,
+            Tag, Button, Space, Input, Modal, message, Popconfirm,
+            Typography, ConfigProvider, theme, Badge, Tooltip, Avatar,
+            Empty, Tabs, Image: AntImage, Dropdown, Form, DatePicker
+        } = antd;
+        const {
+            DashboardOutlined, CloudServerOutlined, DeleteOutlined, SearchOutlined,
+            ReloadOutlined, DatabaseOutlined, ClockCircleOutlined, HddOutlined,
+            TeamOutlined, EyeOutlined, AppstoreOutlined,
+            LoadingOutlined, DownloadOutlined, RotateLeftOutlined, RotateRightOutlined,
+            ZoomInOutlined, ZoomOutOutlined, SwapOutlined, DownOutlined, LockOutlined, UserOutlined,
+            PlusOutlined, EditOutlined, UnorderedListOutlined
+        } = icons;
+        const { defaultAlgorithm, darkAlgorithm } = theme;
+
+        const { Header, Content, Sider } = Layout;
+        const { Title, Text } = Typography;
+
+        const API_BASE = window.location.origin;
+
+        // formatSize helper
+        const formatSize = (bytes) => {
+            if (bytes === 0 || !bytes || isNaN(bytes)) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        };
+
+        // Enhanced type map with FontAwesome (Flat Icons)
+        const typeMap = {
+            text: { label: 'TEXT', color: 'blue', icon: <i className="fa-solid fa-font"></i> },
+            image: { label: 'IMAGE', color: 'purple', icon: <i className="fa-regular fa-image"></i> },
+            files: { label: 'FILES', color: 'orange', icon: <i className="fa-regular fa-folder"></i> },
+            link: { label: 'LINK', color: 'cyan', icon: <i className="fa-solid fa-link"></i> },
+            html: { label: 'HTML', color: 'magenta', icon: <i className="fa-brands fa-html5"></i> },
+            color: { label: 'COLOR', color: 'pink', icon: <i className="fa-solid fa-palette"></i> },
+            default: { label: 'UNKNOWN', color: 'default', icon: <i className="fa-regular fa-file"></i> }
+        };
+
+        const App = () => {
+            const [messageApi, contextHolder] = message.useMessage();
+            const [currentView, setCurrentView] = useState(localStorage.getItem('dashboard-view') || 'dashboard');
+            const [scrollProgress, setScrollProgress] = useState(0);
+            const requestRef = useRef();
+
+            const handleScroll = (e) => {
+                const { scrollTop, scrollHeight, clientHeight } = e.target;
+
+                if (requestRef.current) return;
+
+                requestRef.current = requestAnimationFrame(() => {
+                    if (scrollHeight <= clientHeight) {
+                        setScrollProgress(0);
+                    } else {
+                        const progress = (scrollTop / (scrollHeight - clientHeight)) * 100;
+                        setScrollProgress(Math.min(100, Math.max(0, progress)));
+                    }
+                    requestRef.current = null;
+                });
+            };
+
+            useEffect(() => {
+                setScrollProgress(0);
+            }, [currentView]);
+            const [isDarkMode, setIsDarkMode] = useState(() => {
+                const saved = localStorage.getItem('mode');
+                if (saved) return saved === 'dark';
+                return window.matchMedia('(prefers-color-scheme: dark)').matches;
+            });
+
+            // Admin Auth State
+            const [adminToken, setAdminToken] = useState(localStorage.getItem('pastex_admin_token') || '');
+            const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+            const [adminLoginLoading, setAdminLoginLoading] = useState(false);
+
+            const [favorites, setFavorites] = useState([]);
+            const [latestItem, setLatestItem] = useState(null);
+            const [currentBond, setCurrentBond] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [stats, setStats] = useState({ totalItems: 0, todayItems: 0, storageUsed: 0, uptime: 0, serverStartTime: Date.now() });
+            const [clients, setClients] = useState([]);
+            const [searchText, setSearchText] = useState('');
+            const [previewModalVisible, setPreviewModalVisible] = useState(false);
+            const [previewData, setPreviewData] = useState(null);
+            const [base64ModalVisible, setBase64ModalVisible] = useState(false);
+            const [base64Content, setBase64Content] = useState('');
+            const [clientModalVisible, setClientModalVisible] = useState(false);
+            const [uptimeFormatted, setUptimeFormatted] = useState("0天 00:00:00");
+
+            // Server Users (Admin View)
+            const [serverUsers, setServerUsers] = useState([]);
+
+            // Changelog Management
+            const [changelogData, setChangelogData] = useState([]);
+            const [changelogLoading, setChangelogLoading] = useState(false);
+            const [changelogModalVisible, setChangelogModalVisible] = useState(false);
+            const [editingChangelog, setEditingChangelog] = useState(null);
+            const [changelogForm] = Form.useForm();
+
+            // Token Management
+            // authType: 'token' (default) | 'hash' (direct access)
+            const [authType, setAuthType] = useState('token');
+
+            const [token, setToken] = useState(localStorage.getItem('pastex_token') || '');
+            const [keyModalVisible, setKeyModalVisible] = useState(false);
+            const [inputKey, setInputKey] = useState('');
+
+            // Check Admin Token Validity on Load
+            useEffect(() => {
+                if (adminToken) {
+                    fetch(`${API_BASE}/api/auth/check`, { headers: { 'x-admin-token': adminToken } })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                setIsAdminLoggedIn(true);
+                                localStorage.setItem('pastex_admin_token', adminToken);
+                            } else {
+                                setAdminToken('');
+                                localStorage.removeItem('pastex_admin_token');
+                                setIsAdminLoggedIn(false);
+                            }
+                        })
+                        .catch(() => {
+                            setAdminToken('');
+                            setIsAdminLoggedIn(false);
+                        });
+                }
+            }, []);
+
+            const handleAdminLogin = async (values) => {
+                setAdminLoginLoading(true);
+                try {
+                    // 1. Get Public Key
+                    const keyRes = await fetch(`${API_BASE}/api/auth/public-key`);
+                    const keyData = await keyRes.json();
+
+                    if (!keyData.success) throw new Error('Failed to get public key');
+
+                    // 2. Encrypt Password using Web Crypto API (RSA-OAEP)
+                    const pemContents = keyData.publicKey
+                        .replace(/-----BEGIN PUBLIC KEY-----/, '')
+                        .replace(/-----END PUBLIC KEY-----/, '')
+                        .replace(/\s/g, '');
+                    const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
+
+                    const cryptoKey = await crypto.subtle.importKey(
+                        'spki',
+                        binaryDer.buffer,
+                        { name: 'RSA-OAEP', hash: 'SHA-256' },
+                        false,
+                        ['encrypt']
+                    );
+
+                    const encoded = new TextEncoder().encode(values.password);
+                    const encrypted = await crypto.subtle.encrypt(
+                        { name: 'RSA-OAEP' },
+                        cryptoKey,
+                        encoded
+                    );
+                    const encryptedPassword = btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+
+                    if (!encryptedPassword) throw new Error('Encryption failed');
+
+                    // 3. Login
+                    const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ encryptedPassword })
+                    });
+                    const loginData = await loginRes.json();
+
+                    if (loginData.success) {
+                        setAdminToken(loginData.token);
+                        localStorage.setItem('pastex_admin_token', loginData.token);
+                        setIsAdminLoggedIn(true);
+                        messageApi.success('登录成功');
+                    } else {
+                        messageApi.error(loginData.error || '登录失败');
+                    }
+                } catch (error) {
+                    messageApi.error('登录错误: ' + error.message);
+                } finally {
+                    setAdminLoginLoading(false);
+                }
+            };
+
+            // Update local storage when token changes
+            useEffect(() => {
+                if (token) localStorage.setItem('pastex_token', token);
+                else localStorage.removeItem('pastex_token');
+                if (token && isAdminLoggedIn) fetchData(); // Refetch data when token changes
+            }, [token, isAdminLoggedIn]);
+
+            const handleAddKey = (key) => {
+                if (!key) {
+                    setToken('');
+                    return;
+                }
+                setToken(key);
+                setKeyModalVisible(false);
+                messageApi.success('已切换密钥');
+            };
+
+            const handleAdminLogout = async () => {
+                try {
+                    if (adminToken) {
+                        await fetch(`${API_BASE}/api/auth/logout`, {
+                            method: 'POST',
+                            headers: { 'x-admin-token': adminToken }
+                        });
+                    }
+                } catch (_error) {
+                    // ignore network error on logout
+                } finally {
+                    setAdminToken('');
+                    setIsAdminLoggedIn(false);
+                    localStorage.removeItem('pastex_admin_token');
+                    setToken('');
+                    setServerUsers([]);
+                    setFavorites([]);
+                    setLatestItem(null);
+                    setCurrentBond(null);
+                    setClients([]);
+                    messageApi.success('已退出登录');
+                }
+            };
+
+
+
+            // Sync Theme
+            useEffect(() => {
+                const root = window.document.documentElement;
+                if (isDarkMode) {
+                    root.classList.add('dark');
+                    document.body.classList.add('dark');
+                    localStorage.setItem('mode', 'dark');
+                } else {
+                    root.classList.remove('dark');
+                    document.body.classList.remove('dark');
+                    localStorage.setItem('mode', 'light');
+                }
+            }, [isDarkMode]);
+
+            // Listen for storage changes
+            useEffect(() => {
+                const handleStorage = (e) => {
+                    if (e.key === 'mode') {
+                        setIsDarkMode(e.newValue === 'dark');
+                    }
+                };
+                window.addEventListener('storage', handleStorage);
+                return () => window.removeEventListener('storage', handleStorage);
+            }, []);
+
+            const toggleTheme = async (event) => {
+                const nextMode = !isDarkMode;
+
+                if (!document.startViewTransition) {
+                    setIsDarkMode(nextMode);
+                    return;
+                }
+
+                const x = event.clientX;
+                const y = event.clientY;
+                const endRadius = Math.hypot(
+                    Math.max(x, innerWidth - x),
+                    Math.max(y, innerHeight - y),
+                );
+
+                const transition = document.startViewTransition(() => {
+                    flushSync(() => {
+                        setIsDarkMode(nextMode);
+                        if (nextMode) {
+                            document.documentElement.classList.add('dark');
+                            document.body.classList.add('dark');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                            document.body.classList.remove('dark');
+                        }
+                    });
+                });
+
+                await transition.ready;
+                document.documentElement.animate(
+                    {
+                        clipPath: [
+                            `circle(0px at ${x}px ${y}px)`,
+                            `circle(${endRadius}px at ${x}px ${y}px)`,
+                        ],
+                    },
+                    {
+                        duration: 500,
+                        easing: 'ease-in-out',
+                        pseudoElement: '::view-transition-new(root)',
+                    },
+                );
+            };
+
+            // Fetch Server Users (Admin)
+            const fetchServerUsers = async () => {
+                if (!isAdminLoggedIn) return;
+                try {
+                    const res = await fetch(`${API_BASE}/api/admin/users`, {
+                        headers: { 'x-admin-token': adminToken }
+                    });
+                    if (res.status === 401) {
+                        setIsAdminLoggedIn(false);
+                        return;
+                    }
+                    const data = await res.json();
+                    if (data.success) {
+                        setServerUsers(data.data);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch server users:', error);
+                }
+            };
+
+            // === Changelog CRUD ===
+            const fetchChangelog = async () => {
+                setChangelogLoading(true);
+                try {
+                    const res = await fetch(`${API_BASE}/api/changelog`);
+                    const data = await res.json();
+                    if (data.success) setChangelogData(data.data);
+                } catch (error) {
+                    messageApi.error('获取更新日志失败');
+                } finally {
+                    setChangelogLoading(false);
+                }
+            };
+
+            const handleSaveChangelog = async (values) => {
+                const items = values.items.split('\n').map(s => s.trim()).filter(Boolean);
+                const links = (values.links || []).filter(l => l && l.text && l.url);
+                const body = {
+                    version: values.version,
+                    date: values.date,
+                    items,
+                    links
+                };
+
+                try {
+                    let res;
+                    if (editingChangelog) {
+                        res = await fetch(`${API_BASE}/api/admin/changelog/${editingChangelog.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                            body: JSON.stringify(body)
+                        });
+                    } else {
+                        res = await fetch(`${API_BASE}/api/admin/changelog`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                            body: JSON.stringify(body)
+                        });
+                    }
+                    const data = await res.json();
+                    if (data.success) {
+                        messageApi.success(editingChangelog ? '更新成功' : '添加成功');
+                        setChangelogModalVisible(false);
+                        setEditingChangelog(null);
+                        changelogForm.resetFields();
+                        fetchChangelog();
+                    } else {
+                        messageApi.error(data.error || '操作失败');
+                    }
+                } catch (error) {
+                    messageApi.error('请求失败: ' + error.message);
+                }
+            };
+
+            const handleDeleteChangelog = async (id) => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/admin/changelog/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'x-admin-token': adminToken }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        messageApi.success('已删除');
+                        fetchChangelog();
+                    } else {
+                        messageApi.error(data.error || '删除失败');
+                    }
+                } catch (error) {
+                    messageApi.error('请求失败: ' + error.message);
+                }
+            };
+
+            const openEditChangelog = (entry) => {
+                setEditingChangelog(entry);
+                changelogForm.setFieldsValue({
+                    version: entry.version,
+                    date: entry.date,
+                    items: entry.items.join('\n'),
+                    links: entry.links && entry.links.length > 0 ? entry.links : []
+                });
+                setChangelogModalVisible(true);
+            };
+
+            const openAddChangelog = () => {
+                setEditingChangelog(null);
+                changelogForm.resetFields();
+                changelogForm.setFieldsValue({
+                    date: dayjs().format('YYYY-MM-DD'),
+                    links: []
+                });
+                setChangelogModalVisible(true);
+            };
+
+            // Delete User (Admin)
+            const handleDeleteUser = async (tokenHash) => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/admin/users/${tokenHash}`, {
+                        method: 'DELETE',
+                        headers: { 'x-admin-token': adminToken }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        messageApi.success('用户已删除');
+                        fetchServerUsers(); // Refresh list
+                        // If current user was deleted, reset view
+                        if ((authType === 'token' && serverUsers.find(u => u.tokenHash === tokenHash)?.key === token) ||
+                            (authType === 'hash' && token === tokenHash)) {
+                            setToken('');
+                        }
+                    } else {
+                        messageApi.error('删除失败: ' + data.error);
+                    }
+                } catch (error) {
+                    messageApi.error('请求失败: ' + error.message);
+                }
+            };
+
+            // Data Fetching
+            const fetchData = async () => {
+                // If no token, clear data and don't fetch protected endpoints
+                if (!token) {
+                    setFavorites([]);
+                    setLatestItem(null);
+                    setCurrentBond(null);
+                    setStats({ totalItems: 0, todayItems: 0, storageUsed: 0, uptime: 0, serverStartTime: Date.now() });
+                    setClients([]);
+                    setLoading(false);
+                    return;
+                }
+
+                setLoading(true);
+                try {
+                    const headers = {};
+                    if (authType === 'token') {
+                        if (token) headers['Authorization'] = `Bearer ${token}`;
+                    } else {
+                        // Direct Hash Access
+                        headers['x-token-hash'] = token;
+                    }
+
+                    const res = await fetch(`${API_BASE}/api/favorites`, { headers });
+                    if (res.status === 401) throw new Error('Unauthorized');
+                    const data = await res.json();
+                    if (data.success) setFavorites(data.data.sort((a, b) => new Date(b.createTime) - new Date(a.createTime)));
+
+                    const latestRes = await fetch(`${API_BASE}/api/latest`, { headers });
+                    if (latestRes.status === 401) throw new Error('Unauthorized');
+                    if (latestRes.status === 404) {
+                        setLatestItem(null);
+                    } else {
+                        const latestData = await latestRes.json();
+                        if (latestData.success) {
+                            setLatestItem(latestData.data || null);
+                        } else {
+                            setLatestItem(null);
+                        }
+                    }
+
+                    const bondRes = await fetch(`${API_BASE}/api/bond/me`, { headers });
+                    if (bondRes.status === 401) throw new Error('Unauthorized');
+                    const bondData = await bondRes.json();
+                    if (bondData.success) {
+                        setCurrentBond(bondData.data || null);
+                    } else {
+                        setCurrentBond(null);
+                    }
+
+                    const statsRes = await fetch(`${API_BASE}/api/stats`, { headers });
+                    if (statsRes.status === 401) throw new Error('Unauthorized');
+                    const statsData = await statsRes.json();
+                    if (statsData.success) setStats(statsData.data);
+
+                    const clientsRes = await fetch(`${API_BASE}/api/clients`, { headers });
+                    if (clientsRes.status === 401) throw new Error('Unauthorized');
+                    const clientsData = await clientsRes.json();
+                    if (clientsData.success) setClients(clientsData.data || []);
+
+                } catch (error) {
+                    if (error.message !== 'Unauthorized') {
+                        messageApi.error('获取数据失败: ' + error.message);
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            useEffect(() => {
+                if (isAdminLoggedIn) {
+                    fetchServerUsers();
+                    fetchChangelog();
+                    if (token) fetchData();
+
+                    const interval = setInterval(() => {
+                        if (token) fetchData();
+                        fetchServerUsers();
+                    }, 30000);
+                    return () => clearInterval(interval);
+                }
+            }, [token, isAdminLoggedIn]);
+
+            useEffect(() => {
+                if (!stats.serverStartTime) return;
+                const updateTimer = () => {
+                    const now = Date.now();
+                    const diff = now - stats.serverStartTime;
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    setUptimeFormatted(`${days}天 ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+                };
+                updateTimer();
+                const timer = setInterval(updateTimer, 1000);
+                return () => clearInterval(timer);
+            }, [stats.serverStartTime]);
+
+            const handleDelete = async (id) => {
+                try {
+                    const headers = {};
+                    if (authType === 'token') {
+                        if (token) headers['Authorization'] = `Bearer ${token}`;
+                    } else {
+                        headers['x-token-hash'] = token;
+                    }
+
+                    const res = await fetch(`${API_BASE}/api/favorites/${id}`, { method: 'DELETE', headers });
+                    const data = await res.json();
+                    if (data.success) { messageApi.success('删除成功'); fetchData(); }
+                    else { messageApi.error('删除失败: ' + data.error); }
+                } catch (error) { messageApi.error('请求失败: ' + error.message); }
+            };
+
+            const handlePreview = (record) => { setPreviewData(record); setPreviewModalVisible(true); };
+
+            const handleViewBase64 = (record) => {
+                if (!record || record.type !== 'image' || !record.imageData) {
+                    messageApi.warning('当前条目没有可用的 Base64 数据');
+                    return;
+                }
+
+                setBase64Content(record.imageData);
+                setBase64ModalVisible(true);
+            };
+
+            const handleCopyBase64 = async () => {
+                if (!base64Content) return;
+
+                try {
+                    await navigator.clipboard.writeText(base64Content);
+                    messageApi.success('Base64 已复制');
+                } catch (_error) {
+                    messageApi.error('复制失败');
+                }
+            };
+
+            const columns = [
+                {
+                    title: '类型', dataIndex: 'type', key: 'type', width: 120,
+                    render: (type) => {
+                        const config = typeMap[type] || typeMap.default;
+                        return (
+                            <Tag color={config.color} className="rounded-md px-2 py-0.5 border-none font-bold inline-flex items-center gap-1.5 align-middle">
+                                <span className="text-xs">{config.icon}</span>
+                                <span>{config.label}</span>
+                            </Tag>
+                        );
+                    }
+                },
+                {
+                    title: '内容预览', dataIndex: 'value', key: 'value', ellipsis: true,
+                    render: (text, record) => {
+                        if (record.type === 'image') {
+                            if (record.imageData) {
+                                return (
+                                    <div className="h-10 w-16 bg-slate-100 dark:bg-gray-800 rounded overflow-hidden border border-slate-200 dark:border-gray-700 flex items-center justify-center">
+                                        <AntImage
+                                            width={64} height={40} src={record.imageData}
+                                            fallback="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
+                                            placeholder={<div className="w-full h-full bg-slate-200 dark:bg-gray-700 animate-pulse flex items-center justify-center text-slate-400"><LoadingOutlined /></div>}
+                                            preview={{
+                                                mask: <EyeOutlined className="text-lg text-white" />,
+                                                toolbarRender: (_, { transform: { scale }, actions: { onFlipY, onFlipX, onRotateLeft, onRotateRight, onZoomOut, onZoomIn } }) => (
+                                                    <Space size={12} className="toolbar-wrapper bg-black/50 rounded-full px-4 py-1 backdrop-blur-sm">
+                                                        <Tooltip title="下载原图">
+                                                            <Button type="text" icon={<DownloadOutlined style={{ fontSize: 18, color: '#fff' }} />} onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const link = document.createElement('a');
+                                                                link.href = record.imageData;
+                                                                link.download = `pastex-image-${record.id}.png`;
+                                                                document.body.appendChild(link);
+                                                                link.click();
+                                                                document.body.removeChild(link);
+                                                            }} />
+                                                        </Tooltip>
+                                                        <Button type="text" icon={<SwapOutlined style={{ fontSize: 18, color: '#fff' }} />} onClick={onFlipX} />
+                                                        <Button type="text" icon={<RotateLeftOutlined style={{ fontSize: 18, color: '#fff' }} />} onClick={onRotateLeft} />
+                                                        <Button type="text" icon={<RotateRightOutlined style={{ fontSize: 18, color: '#fff' }} />} onClick={onRotateRight} />
+                                                        <Button type="text" icon={<ZoomOutOutlined style={{ fontSize: 18, color: '#fff' }} />} disabled={scale === 1} onClick={onZoomOut} />
+                                                        <Button type="text" icon={<ZoomInOutlined style={{ fontSize: 18, color: '#fff' }} />} disabled={scale === 50} onClick={onZoomIn} />
+                                                    </Space>
+                                                ),
+                                            }}
+                                            style={{ objectFit: 'contain' }}
+                                        />
+                                    </div>
+                                );
+                            }
+                            return <Tag bordered={false}>图片文件</Tag>;
+                        }
+                        if (record.type === 'html') {
+                            const div = document.createElement('div'); div.innerHTML = text || '';
+                            return <span className="text-slate-600 dark:text-gray-300">{div.textContent || div.innerText || '--'}</span>;
+                        }
+                        return <span className="text-slate-600 dark:text-gray-300 font-mono text-sm">{text}</span>;
+                    }
+                },
+                {
+                    title: '备注', dataIndex: 'note', key: 'note', width: 150, ellipsis: true,
+                    render: (text) => <span className="text-slate-600 dark:text-gray-300 text-sm">{text || '-'}</span>
+                },
+                {
+                    title: '来源', dataIndex: 'source', key: 'source', width: 120, ellipsis: true,
+                    render: (text) => text ? <Tag className="border-none bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300">{text}</Tag> : '-'
+                },
+                {
+                    title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180,
+                    render: (text) => <span className="text-slate-500 dark:text-gray-400 text-sm">{dayjs(text).format('YYYY-MM-DD HH:mm:ss')}</span>,
+                    sorter: (a, b) => new Date(a.createTime) - new Date(b.createTime)
+                },
+                {
+                    title: '操作', key: 'action', width: 100,
+                    render: (_, record) => (
+                        <Space size="small">
+                            <Button type="text" icon={<EyeOutlined />} onClick={() => handlePreview(record)} className="text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30" />
+                            {record.type === 'image' && record.imageData && (
+                                <Button
+                                    type="text"
+                                    icon={<i className="fa-solid fa-code text-xs"></i>}
+                                    onClick={() => handleViewBase64(record)}
+                                    className="text-slate-400 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/30"
+                                />
+                            )}
+                            <Popconfirm
+                                title={<span className="font-bold text-slate-800 dark:text-white">确认删除</span>}
+                                description={<span className="text-slate-600 dark:text-gray-300">确定要删除这条同步条目吗？</span>}
+                                onConfirm={() => handleDelete(record.id)}
+                                okText="删除"
+                                cancelText="取消"
+                                okButtonProps={{ danger: true }}
+                            >
+                                <Button type="text" danger icon={<DeleteOutlined />} className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30" />
+                            </Popconfirm>
+                        </Space>
+                    )
+                }
+            ];
+
+            const filteredData = favorites.filter(item => {
+                if (!searchText) return true;
+                const searchLower = searchText.toLowerCase();
+                return (
+                    (item.value && String(item.value).toLowerCase().includes(searchLower)) ||
+                    (item.type && item.type.toLowerCase().includes(searchLower)) ||
+                    (item.note && item.note.toLowerCase().includes(searchLower)) ||
+                    (item.source && item.source.toLowerCase().includes(searchLower)) ||
+                    (item.deviceName && String(item.deviceName).toLowerCase().includes(searchLower)) ||
+                    (item.deviceId && String(item.deviceId).toLowerCase().includes(searchLower))
+                );
+            });
+
+            // Improved StatCard with robust dark mode colors
+            const colorVariants = {
+                blue: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400',
+                purple: 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400',
+                orange: 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400',
+                cyan: 'bg-cyan-50 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-400',
+                green: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
+            };
+
+            const StatCard = ({ title, value, icon, variant = 'blue', subValue, onClick }) => (
+                <div onClick={onClick} className={`bg-white dark:bg-[#161b22] rounded-xl p-5 shadow-card dark:shadow-none border border-slate-100 dark:border-[#30363d] transition-all duration-300 ${onClick ? 'cursor-pointer hover:shadow-lg dark:hover:bg-[#1f242c]' : ''}`}>
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-slate-500 dark:text-gray-400 text-sm font-medium mb-1">{title}</p>
+                            <h3 className="text-2xl font-bold text-slate-800 dark:text-white m-0">{value}</h3>
+                            {subValue && <div className="mt-2">{subValue}</div>}
+                        </div>
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-colors ${colorVariants[variant]}`}>
+                            {icon}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            if (!isAdminLoggedIn) {
+                return (
+                    <ConfigProvider
+                        theme={{
+                            algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm,
+                            token: {
+                                colorPrimary: '#1677ff',
+                                borderRadius: 8,
+                                fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                                colorBgContainer: isDarkMode ? '#161b22' : '#ffffff',
+                            }
+                        }}
+                    >
+                        {contextHolder}
+                        <Layout className="min-h-screen bg-[#f5f7fa] dark:bg-[#0d1117] transition-colors duration-300 flex items-center justify-center p-4">
+                            <Card className="w-full max-w-sm shadow-xl dark:border-gray-700" bordered={false}>
+                                <div className="text-center mb-8">
+                                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <div className="w-10 h-10 rounded-lg overflow-hidden">
+                                            <img src="./PasteX.png" alt="Logo" className="w-full h-full object-cover" />
+                                        </div>
+                                    </div>
+                                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">管理面板登录</h1>
+                                    <p className="text-slate-500 text-sm">请输入管理员密码</p>
+                                </div>
+
+                                <Form onFinish={handleAdminLogin} layout="vertical">
+                                    <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
+                                        <Input.Password
+                                            size="large"
+                                            prefix={<LockOutlined className="text-slate-400" />}
+                                            placeholder="管理员密码"
+                                        />
+                                    </Form.Item>
+                                    <Button type="primary" htmlType="submit" size="large" block loading={adminLoginLoading}>
+                                        登录
+                                    </Button>
+                                </Form>
+
+                                <div className="mt-8 text-center">
+                                    <Button
+                                        icon={isDarkMode ? <i className="fa-solid fa-sun"></i> : <i className="fa-solid fa-moon"></i>}
+                                        onClick={toggleTheme}
+                                        type="text"
+                                        className="text-slate-500"
+                                    >
+                                        {isDarkMode ? '切换亮色模式' : '切换暗色模式'}
+                                    </Button>
+                                </div>
+                            </Card>
+                        </Layout>
+                    </ConfigProvider>
+                );
+            }
+
+            const changelogSection = (
+                <div className="bg-white dark:bg-[#161b22] rounded-2xl shadow-card dark:shadow-none border border-slate-100 dark:border-[#30363d] flex flex-col overflow-hidden h-full">
+                    <div className="p-5 border-b border-slate-100 dark:border-[#30363d] flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2">
+                            <div className="bg-cyan-50 dark:bg-cyan-900/20 p-2 rounded-lg text-cyan-500">
+                                <i className="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <h2 className="text-lg font-bold text-slate-800 dark:text-white">更新日志管理</h2>
+                            <Tag color="blue" className="ml-2">{changelogData.length} 条</Tag>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Tooltip title="刷新">
+                                <Button icon={<ReloadOutlined />} onClick={fetchChangelog} loading={changelogLoading} className="border-slate-200 dark:border-[#30363d] text-slate-500 dark:text-gray-400" />
+                            </Tooltip>
+                            <Button type="primary" icon={<PlusOutlined />} onClick={openAddChangelog}>
+                                新增版本
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-auto p-4 no-scrollbar" onScroll={handleScroll} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        {changelogLoading ? (
+                            <div className="flex items-center justify-center py-20">
+                                <LoadingOutlined className="text-3xl text-blue-500" />
+                            </div>
+                        ) : changelogData.length === 0 ? (
+                            <Empty description="暂无更新日志" />
+                        ) : (
+                            <div className="space-y-4">
+                                {changelogData.map((entry, i) => (
+                                    <div key={entry.id} className="group border border-slate-100 dark:border-[#30363d] rounded-xl p-5 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 hover:shadow-sm">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <Tag color={i === 0 ? 'blue' : 'default'} className="text-sm font-bold px-3 py-0.5">
+                                                    {entry.version}
+                                                </Tag>
+                                                <span className="text-sm text-slate-400 dark:text-gray-500 font-mono">{entry.date}</span>
+                                                {i === 0 && <Tag color="green" className="text-xs">最新</Tag>}
+                                            </div>
+                                            <Space className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Tooltip title="编辑">
+                                                    <Button
+                                                        type="text" size="small"
+                                                        icon={<EditOutlined />}
+                                                        onClick={() => openEditChangelog(entry)}
+                                                        className="text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                                                    />
+                                                </Tooltip>
+                                                <Tooltip title="删除">
+                                                    <Popconfirm
+                                                        title={<span className="font-bold text-slate-800 dark:text-white">确认删除版本</span>}
+                                                        description={<span className="text-slate-600 dark:text-gray-300">确定要删除版本 {entry.version} 的更新日志吗？</span>}
+                                                        onConfirm={() => handleDeleteChangelog(entry.id)}
+                                                        okText="删除"
+                                                        cancelText="取消"
+                                                        okButtonProps={{ danger: true }}
+                                                    >
+                                                        <Button
+                                                            type="text"
+                                                            size="small"
+                                                            danger
+                                                            icon={<DeleteOutlined />}
+                                                            className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                                        />
+                                                    </Popconfirm>
+                                                </Tooltip>
+                                            </Space>
+                                        </div>
+
+                                        {/* Download Links */}
+                                        {entry.links && entry.links.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mb-3">
+                                                {entry.links.map((link, l) => (
+                                                    <a key={l} href={link.url} target="_blank" className="inline-flex items-center gap-1.5 text-xs text-blue-500 hover:text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 rounded-md font-medium">
+                                                        <i className="fa-solid fa-download text-[10px]"></i> {link.text}
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <div className="bg-slate-50 dark:bg-[#0d1117]/50 rounded-lg p-3">
+                                            <ul className="space-y-1.5 pl-1">
+                                                {entry.items.map((item, j) => (
+                                                    <li key={j} className="flex items-start gap-2 text-sm text-slate-600 dark:text-gray-300">
+                                                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-gray-600 flex-shrink-0"></span>
+                                                        <span>{item}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+
+            const dashboardTabsItems = [
+                {
+                    key: 'favorites',
+                    label: <span className="flex items-center gap-2"><i className="fa-solid fa-list-check"></i> 同步条目</span>,
+                    children: (
+                        <div className="h-full min-h-0 flex flex-col">
+                            <div className="flex justify-between items-center mb-4 px-2">
+                                <h2 className="text-lg font-bold text-slate-800 dark:text-white">同步条目列表</h2>
+                                <div className="flex items-center gap-3">
+                                    <Input
+                                        placeholder="搜索条目 / 设备名 / 设备ID..."
+                                        prefix={<SearchOutlined className="text-slate-400" />}
+                                        value={searchText}
+                                        onChange={e => setSearchText(e.target.value)}
+                                        className="w-64 rounded-lg bg-slate-50 dark:!bg-[#21262d] dark:text-gray-200 border-slate-200 dark:border-[#30363d] hover:bg-white dark:hover:!bg-[#30363d] transition-colors [&_input]:!bg-transparent placeholder:text-slate-400 dark:placeholder:text-gray-500"
+                                    />
+                                    <Tooltip title="刷新数据">
+                                        <Button icon={<ReloadOutlined />} onClick={fetchData} loading={loading} className="border-slate-200 dark:border-[#30363d] text-slate-500 dark:text-gray-400 hover:text-blue-500 hover:border-blue-500" />
+                                    </Tooltip>
+                                </div>
+                            </div>
+                            {!token ? (
+                                <div className="flex-1 flex items-center justify-center p-12">
+                                    <Empty description="请先选择一个用户以查看同步数据" />
+                                </div>
+                            ) : (
+                                <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-2" onScroll={handleScroll}>
+                                    <Table
+                                        columns={columns}
+                                        dataSource={filteredData}
+                                        rowKey="id"
+                                        loading={loading}
+                                        pagination={{ pageSize: 8, position: ['bottomCenter'], showSizeChanger: false }}
+                                        className="ant-table-custom"
+                                        rowClassName="hover:bg-slate-50 dark:hover:bg-[#1f242c] transition-colors"
+                                        onRow={null}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )
+                },
+                {
+                    key: 'latest',
+                    label: <span className="flex items-center gap-2"><i className="fa-solid fa-bolt"></i> Latest 同步流</span>,
+                    children: (
+                        <div className="h-full min-h-0 flex flex-col">
+                            <div className="flex justify-between items-center mb-4 px-2">
+                                <h2 className="text-lg font-bold text-slate-800 dark:text-white">Latest 实时同步数据</h2>
+                                <Space>
+                                    {latestItem && (
+                                        <Button type="primary" icon={<EyeOutlined />} onClick={() => handlePreview(latestItem)}>
+                                            在弹窗中查看
+                                        </Button>
+                                    )}
+                                    {latestItem?.type === 'image' && latestItem?.imageData && (
+                                        <Button icon={<i className="fa-solid fa-code"></i>} onClick={() => handleViewBase64(latestItem)}>
+                                            查看 Base64
+                                        </Button>
+                                    )}
+                                    <Tooltip title="刷新数据">
+                                        <Button icon={<ReloadOutlined />} onClick={fetchData} loading={loading} className="border-slate-200 dark:border-[#30363d] text-slate-500 dark:text-gray-400 hover:text-blue-500 hover:border-blue-500" />
+                                    </Tooltip>
+                                </Space>
+                            </div>
+                            {!token ? (
+                                <div className="flex-1 flex items-center justify-center p-12">
+                                    <Empty description="请先选择一个用户以查看同步数据" />
+                                </div>
+                            ) : !latestItem ? (
+                                <div className="flex-1 flex items-center justify-center p-12">
+                                    <Empty description="暂无 Latest 数据" />
+                                </div>
+                            ) : (
+                                <div className="min-h-0 flex-1 overflow-hidden p-2">
+                                    <div className="bg-white dark:bg-[#161b22] rounded-xl border border-slate-100 dark:border-[#30363d] p-5 h-full min-h-0 flex flex-col">
+                                        <div className="flex items-center justify-between gap-3 mb-4">
+                                            <Space>
+                                                {(() => {
+                                                    const config = typeMap[latestItem.type] || typeMap.default;
+                                                    return <Tag color={config.color} className="m-0 px-2 py-0.5 rounded text-sm font-bold flex items-center gap-1.5">{config.icon} {config.label}</Tag>;
+                                                })()}
+                                                <Tag bordered={false} color="blue">ID: {latestItem.id || '--'}</Tag>
+                                                {latestItem.deviceName && <Tag bordered={false} color="geekblue">设备: {latestItem.deviceName}</Tag>}
+                                                {latestItem.deviceId && <Tag bordered={false} color="purple">设备ID: {String(latestItem.deviceId).slice(0, 8)}...</Tag>}
+                                            </Space>
+                                            <span className="text-slate-500 dark:text-gray-400 text-sm">
+                                                {latestItem.createTime ? dayjs(latestItem.createTime).format('YYYY-MM-DD HH:mm:ss') : '--'}
+                                            </span>
+                                        </div>
+
+                                        <div className="mb-4 grid grid-cols-1 gap-2 md:grid-cols-2">
+                                            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-[#30363d] dark:bg-[#0d1117] dark:text-gray-300">
+                                                <span className="mr-1 text-slate-400 dark:text-gray-500">设备名:</span>
+                                                <span className="font-mono">{latestItem.deviceName || '--'}</span>
+                                            </div>
+                                            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-[#30363d] dark:bg-[#0d1117] dark:text-gray-300">
+                                                <span className="mr-1 text-slate-400 dark:text-gray-500">设备ID:</span>
+                                                <span className="font-mono break-all">{latestItem.deviceId || '--'}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-4 bg-slate-50 dark:bg-[#0d1117] rounded-lg border border-slate-200 dark:border-[#30363d] min-h-[120px] flex-1 overflow-auto no-scrollbar" onScroll={handleScroll} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                            {latestItem.type === 'image' && latestItem.imageData ? (
+                                                <div className="flex justify-center bg-chess-pattern">
+                                                    <img src={latestItem.imageData} alt="Latest 预览" style={{ maxWidth: '100%', maxHeight: '420px', objectFit: 'contain' }} />
+                                                </div>
+                                            ) : latestItem.type === 'html' ? (
+                                                <div dangerouslySetInnerHTML={{ __html: latestItem.value || '' }} className="prose dark:prose-invert max-w-none" />
+                                            ) : (
+                                                <pre className="whitespace-pre-wrap font-mono text-sm text-slate-700 dark:text-gray-300 m-0">{latestItem.value || '--'}</pre>
+                                            )}
+                                        </div>
+
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
+            ];
+
+            return (
+                <ConfigProvider
+                    theme={{
+                        algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm,
+                        token: {
+                            colorPrimary: '#1677ff',
+                            borderRadius: 8,
+                            fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                            colorBgContainer: isDarkMode ? '#161b22' : '#ffffff',
+                            colorBgElevated: isDarkMode ? '#161b22' : '#ffffff',
+                            colorBorder: isDarkMode ? '#30363d' : '#d9d9d9',
+                        }
+                    }}
+                >
+                    <Layout className="h-screen overflow-hidden bg-[#f5f7fa] dark:bg-[#0d1117] transition-colors duration-300">
+                        <Header className="bg-white/80 dark:bg-[#161b22]/80 backdrop-blur-md sticky top-0 z-10 px-6 h-16 flex items-center justify-between border-b border-slate-100 dark:border-[#30363d] shadow-sm dark:shadow-none transition-colors duration-300 relative">
+                            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 z-20 origin-left transform transition-transform duration-200 ease-out will-change-transform" style={{ transform: `scaleX(${scrollProgress / 100})`, opacity: scrollProgress > 0 ? 1 : 0 }}></div>
+                            <div className="flex items-center gap-8">
+                                <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentView('dashboard')}>
+                                    <div className="w-8 h-8 rounded-lg overflow-hidden shadow-sm dark:shadow-none border border-transparent dark:border-[#30363d]">
+                                        <img src="./PasteX.png" alt="Logo" className="w-full h-full object-cover" />
+                                    </div>
+                                    <span className="font-bold text-xl text-slate-800 dark:text-white tracking-tight">PasteX <span className="text-blue-500">Server</span></span>
+                                </div>
+                                <div className="hidden md:flex items-center gap-6 relative">
+                                    <div
+                                        className={`w-20 text-center cursor-pointer font-bold text-base transition-colors py-5 ${currentView === 'dashboard' ? 'text-blue-500' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
+                                        onClick={() => setCurrentView('dashboard')}
+                                    >
+                                        同步管理
+                                    </div>
+                                    <div
+                                        className={`w-20 text-center cursor-pointer font-bold text-base transition-colors py-5 ${currentView === 'changelog' ? 'text-blue-500' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
+                                        onClick={() => setCurrentView('changelog')}
+                                    >
+                                        更新日志
+                                    </div>
+                                    <div
+                                        className="absolute bottom-0 left-0 w-20 h-0.5 bg-blue-500 rounded-full transition-transform duration-300 ease-in-out"
+                                        style={{ transform: currentView === 'dashboard' ? 'translateX(0)' : 'translateX(calc(100% + 24px))' }}
+                                    ></div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                {currentView === 'dashboard' && (
+                                    <Dropdown
+                                        menu={{
+                                            items: [
+                                                {
+                                                    key: 'group-server',
+                                                    type: 'group',
+                                                    label: '用户列表 (User List)',
+                                                    children: serverUsers.length > 0 ? serverUsers.map(u => {
+                                                        const isKeyKnown = !!u.key;
+                                                        const displayToken = isKeyKnown ? u.key : u.tokenHash;
+                                                        const isActive = (authType === 'token' && token === u.key) || (authType === 'hash' && token === u.tokenHash);
+
+                                                        return {
+                                                            key: `user-${u.tokenHash}`,
+                                                            label: (
+                                                                <div className="flex justify-between items-center w-64 group">
+                                                                    <div className="flex-1 cursor-pointer" onClick={() => {
+                                                                        if (isKeyKnown) {
+                                                                            setToken(u.key);
+                                                                            setAuthType('token');
+                                                                        } else {
+                                                                            // Only hash known
+                                                                            setToken(u.tokenHash);
+                                                                            setAuthType('hash');
+                                                                        }
+                                                                    }}>
+                                                                        <div className="flex flex-col overflow-hidden">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <i className={`fa-solid ${isKeyKnown ? 'fa-key text-blue-500' : 'fa-database text-purple-500'}`}></i>
+                                                                                <span className="truncate font-medium text-slate-700 dark:text-gray-300 w-32" title={isKeyKnown ? u.key : `Hash: ${u.tokenHash}`}>
+                                                                                    {isKeyKnown ? u.key : `User (Hash)`}
+                                                                                </span>
+                                                                            </div>
+                                                                            <span className="text-xs text-slate-400 pl-6">
+                                                                                {u.count} 条记录 · {formatSize(u.storageUsed)}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="flex items-center gap-2 pl-2">
+                                                                        {isActive && <i className="fa-solid fa-check text-green-500"></i>}
+                                                                        <div onClick={(e) => e.stopPropagation()}>
+                                                                            <Popconfirm
+                                                                                title={<span className="font-bold text-slate-800 dark:text-white">确认删除用户</span>}
+                                                                                description={<div className="max-w-xs text-slate-600 dark:text-gray-300">
+                                                                                    确定要删除用户 <span className="font-mono bg-slate-100 dark:bg-gray-800 px-1 rounded text-xs">{isKeyKnown ? u.key : (u.tokenHash.substring(0, 8) + '...')}</span><br />及其所有数据吗？此操作不可恢复。
+                                                                                </div>}
+                                                                                onConfirm={() => handleDeleteUser(u.tokenHash)}
+                                                                                okText="删除"
+                                                                                cancelText="取消"
+                                                                                okButtonProps={{ danger: true }}
+                                                                            >
+                                                                                <Button
+                                                                                    type="text"
+                                                                                    danger
+                                                                                    size="small"
+                                                                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                                    icon={<DeleteOutlined />}
+                                                                                />
+                                                                            </Popconfirm>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        };
+                                                    }) : [{ key: 'no-users', label: <span className="text-slate-400 text-xs pl-4">暂无用户数据</span>, disabled: true }]
+                                                }
+                                            ]
+                                        }}
+                                        trigger={['click']}
+                                        overlayClassName="h-[400px] overflow-auto"
+                                    >
+                                        <Button
+                                            className={`flex items-center gap-2 border-slate-200 dark:border-gray-700 ${token ? 'text-green-600 dark:text-green-500 border-green-200 bg-green-50 dark:bg-green-900/20' : 'text-slate-600 dark:text-gray-300'}`}
+                                        >
+                                            <i className={`fa-solid ${authType === 'hash' ? 'fa-database' : 'fa-key'}`}></i>
+                                            <span className="max-w-[100px] truncate font-mono">
+                                                {token ? (authType === 'hash' ? 'User...' : `${token.substring(0, 4)}...${token.substring(token.length - 4)}`) : '选择用户'}
+                                            </span>
+                                            <DownOutlined className="text-xs" />
+                                        </Button>
+                                    </Dropdown>
+                                )}
+                                <Button
+                                    className="flex items-center gap-2 border-slate-200 dark:border-gray-700 text-slate-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-900"
+                                    href="/"
+                                >
+                                    <i className="fa-solid fa-house"></i> 首页
+                                </Button>
+                                <Button
+                                    className="flex items-center gap-2 border-slate-200 dark:border-gray-700 text-slate-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-900"
+                                    href="https://github.com/yixing233/PasteX"
+                                    target="_blank"
+                                >
+                                    <i className="fa-brands fa-github"></i> GitHub
+                                </Button>
+                                <Button
+                                    className="flex items-center gap-2 border-slate-200 dark:border-gray-700 text-slate-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-900"
+                                    onClick={handleAdminLogout}
+                                >
+                                    <i className="fa-solid fa-right-from-bracket"></i> 退出登录
+                                </Button>
+                                <Button
+                                    icon={isDarkMode ? <i className="fa-solid fa-sun"></i> : <i className="fa-solid fa-moon"></i>}
+                                    onClick={toggleTheme}
+                                    className="border-slate-200 dark:border-[#30363d] text-slate-600 dark:text-gray-300"
+                                />
+                            </div>
+                        </Header>
+
+                        {currentView === 'changelog' ? (
+                            <Content key="changelog" className="p-6 max-w-7xl mx-auto w-full flex-1 overflow-hidden flex flex-col animate-fade-slide-in">
+                                {changelogSection}
+                            </Content>
+                        ) : !token ? (
+                            <Content key="empty" className="p-6 max-w-7xl mx-auto w-full flex-1 flex flex-col items-center justify-center text-center animate-fade-slide-in">
+                                <div className="bg-white dark:bg-[#161b22] p-12 rounded-3xl shadow-card dark:shadow-none border border-slate-100 dark:border-[#30363d] max-w-lg w-full">
+                                    <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                        <i className="fa-solid fa-user-lock text-4xl text-blue-500"></i>
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-3">请选择用户</h2>
+                                    <p className="text-slate-500 dark:text-gray-400 mb-8">
+                                        请从右上角的下拉菜单中选择一个用户以查看其数据。<br />
+                                        如果尚未有用户连接，请先在 PasteX 客户端中配置同步密钥。
+                                    </p>
+                                    <div className="flex justify-center">
+                                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-gray-800 rounded-lg text-slate-600 dark:text-gray-300 text-sm">
+                                            <i className="fa-solid fa-info-circle"></i>
+                                            <span>同步服务现已强制要求密钥验证</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </Content>
+                        ) : (
+                            <Content key="dashboard" className="p-6 max-w-7xl mx-auto w-full flex-1 overflow-hidden flex flex-col animate-fade-slide-in">
+                                {token && (
+                                    <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:border-[#30363d] dark:bg-[#161b22] dark:text-gray-300">
+                                        <span className="font-medium">当前纽带：</span>
+                                        <span className="ml-1 font-mono">{currentBond?.username || '未识别用户名'}</span>
+                                        <span className="ml-3 text-xs text-slate-500 dark:text-gray-500">Hash: {currentBond?.tokenHash?.slice?.(0, 10) || '--'}...</span>
+                                    </div>
+                                )}
+
+                                {/* Stats Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                                    <StatCard
+                                        title="在线客户端"
+                                        value={token ? clients.length : '--'}
+                                        icon={<i className="fa-solid fa-users"></i>}
+                                        variant="blue"
+                                        subValue={token ? <div className="flex items-center gap-1 text-xs text-green-500 font-medium"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> 运行中</div> : <span className="text-xs text-slate-400">选择用户查看</span>}
+                                        onClick={token ? () => setClientModalVisible(true) : undefined}
+                                    />
+                                    <StatCard
+                                        title="同步条目"
+                                        value={token ? stats.totalItems : '--'}
+                                        icon={<i className="fa-solid fa-layer-group"></i>}
+                                        variant="purple"
+                                        subValue={token ? <span className="text-xs text-slate-400 dark:text-gray-500">今日新增: {stats.todayItems}</span> : <span className="text-xs text-slate-400">选择用户查看</span>}
+                                    />
+                                    <StatCard
+                                        title="存储用量"
+                                        value={formatSize(stats.storageUsed)}
+                                        icon={<i className="fa-solid fa-hard-drive"></i>}
+                                        variant="orange"
+                                        subValue={<span className="text-xs text-slate-400 dark:text-gray-500">数据文件大小</span>}
+                                    />
+                                    <StatCard
+                                        title="运行时长"
+                                        value={uptimeFormatted}
+                                        icon={<i className="fa-solid fa-server"></i>}
+                                        variant="green"
+                                        subValue={<span className="text-xs text-slate-400 dark:text-gray-500">自上次启动</span>}
+                                    />
+                                </div>
+
+                                {/* Tabbed Content */}
+                                <Tabs
+                                    defaultActiveKey="favorites"
+                                    className="dashboard-tabs flex-1 min-h-0 flex flex-col"
+                                    items={dashboardTabsItems}
+                                />
+                            </Content>
+                        )}
+
+                        <div className="text-center py-6 text-slate-400 dark:text-gray-600 text-sm">PasteX Server Dashboard ©2026 Created by PasteX Team</div>
+
+                        <Modal
+                            title={<div className="flex items-center gap-2"><EyeOutlined /><span>内容详情</span></div>}
+                            open={previewModalVisible}
+                            onCancel={() => setPreviewModalVisible(false)}
+                            footer={null} width={800} centered
+                            className="rounded-xl overflow-hidden"
+                        >
+                            {previewData && (
+                                <div className="mt-4">
+                                    <div className="flex items-center justify-between mb-4 bg-slate-50 dark:bg-[#0d1117] p-3 rounded-lg border border-slate-100 dark:border-[#30363d]">
+                                        <Space>
+                                            {(() => {
+                                                const config = typeMap[previewData.type] || typeMap.default;
+                                                return <Tag color={config.color} className="m-0 px-2 py-0.5 rounded text-sm font-bold flex items-center gap-1.5">{config.icon} {config.label}</Tag>;
+                                            })()}
+                                            <span className="text-slate-500 dark:text-gray-400 text-sm">ID: {previewData.id}</span>
+                                            {previewData.deviceName && <Tag bordered={false} color="geekblue">设备: {previewData.deviceName}</Tag>}
+                                            {previewData.deviceId && <Tag bordered={false} color="purple">设备ID: {String(previewData.deviceId).slice(0, 8)}...</Tag>}
+                                        </Space>
+                                        <span className="text-slate-400 dark:text-gray-500 text-sm">{dayjs(previewData.createTime).format('YYYY-MM-DD HH:mm:ss')}</span>
+                                    </div>
+                                    <div className="p-4 bg-slate-50 dark:bg-[#0d1117] rounded-lg border border-slate-200 dark:border-[#30363d] min-h-[100px] max-h-[500px] overflow-auto">
+                                        {previewData.type === 'image' && previewData.imageData ? (
+                                            <div className="flex justify-center bg-chess-pattern">
+                                                <img src={previewData.imageData} alt="预览" style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+                                            </div>
+                                        ) : previewData.type === 'html' ? (
+                                            <div dangerouslySetInnerHTML={{ __html: previewData.value }} className="prose dark:prose-invert max-w-none" />
+                                        ) : (
+                                            <pre className="whitespace-pre-wrap font-mono text-sm text-slate-700 dark:text-gray-300 m-0">{previewData.value}</pre>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </Modal>
+
+                        <Modal
+                            title={<div className="flex items-center gap-2"><i className="fa-solid fa-code"></i><span>图片 Base64</span></div>}
+                            open={base64ModalVisible}
+                            onCancel={() => setBase64ModalVisible(false)}
+                            width={900}
+                            centered
+                            footer={[
+                                <Button key="close" onClick={() => setBase64ModalVisible(false)}>关闭</Button>,
+                                <Button key="copy" type="primary" onClick={handleCopyBase64}>复制 Base64</Button>
+                            ]}
+                        >
+                            <div className="text-slate-500 dark:text-gray-400 text-xs mb-2 break-all">长度: {base64Content?.length || 0}</div>
+                            <Input.TextArea
+                                value={base64Content || ''}
+                                readOnly
+                                autoSize={{ minRows: 12, maxRows: 20 }}
+                                className="font-mono text-xs"
+                            />
+                        </Modal>
+
+                        <Modal
+                            title={<div className="flex items-center gap-2"><TeamOutlined className="text-blue-600" /><span className="font-semibold">在线客户端详情</span></div>}
+                            open={clientModalVisible} onCancel={() => setClientModalVisible(false)} footer={null} width={800} centered
+                        >
+                            <Table
+                                columns={[
+                                    { title: 'ID', dataIndex: ['info', 'id'], key: 'id', width: 200, ellipsis: false, render: (id) => <Text code copyable className="dark:text-gray-300 text-xs break-all" style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>{id || 'Unknown'}</Text> },
+                                    { title: '主机名', dataIndex: ['info', 'hostname'], key: 'hostname', render: text => <span className="font-medium dark:text-gray-200">{text}</span> },
+                                    { title: 'IP 地址', dataIndex: 'ip', key: 'ip', render: text => <span className="font-mono text-xs">{text || '--'}</span> },
+                                    {
+                                        title: '平台', dataIndex: ['info', 'platform'], key: 'platform',
+                                        render: (text) => {
+                                            let icon = 'windows'; if (text === 'macos') icon = 'apple'; if (text === 'linux') icon = 'linux';
+                                            return <Tag icon={<i className={`fab fa-${icon}`} />} color="blue" className="px-2 py-0.5 rounded capitalize">{text}</Tag>;
+                                        }
+                                    },
+                                    { title: '客户端版本', dataIndex: ['info', 'appVersion'], key: 'appVersion', render: (text) => <Tag color="cyan">{text || 'Unknown'}</Tag> },
+                                    { title: '系统版本', dataIndex: ['info', 'osVersion'], key: 'osVersion', className: 'text-slate-500 dark:text-gray-400' },
+                                    {
+                                        title: '连接时长', dataIndex: 'duration', key: 'duration',
+                                        render: (duration) => {
+                                            const mins = Math.floor(duration / 60000); const secs = Math.floor((duration % 60000) / 1000);
+                                            return <Tag color="success" bordered={false}>{mins}分 {secs}秒</Tag>;
+                                        }
+                                    },
+                                ]}
+                                dataSource={clients} rowKey={(record) => record.id} pagination={false}
+                                locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无在线客户端" /> }} className="mt-4"
+                            />
+                        </Modal>
+
+                        <Modal
+                            title={<div className="flex items-center gap-2"><i className="fa-solid fa-key text-blue-500"></i><span className="font-semibold">添加访问密钥</span></div>}
+                            open={keyModalVisible}
+                            onCancel={() => setKeyModalVisible(false)}
+                            onOk={() => { handleAddKey(inputKey); setAuthType('token'); }}
+                            okText="保存"
+                            cancelText="取消"
+                            centered
+                        >
+                            <div className="py-4">
+                                <p className="mb-2 text-slate-500 dark:text-gray-400">请输入您的 Secret Key 以添加至密钥列表。</p>
+                                <Input.Password
+                                    placeholder="输入 Secret Key..."
+                                    value={inputKey}
+                                    onChange={e => setInputKey(e.target.value)}
+                                    size="large"
+                                    prefix={<i className="fa-solid fa-lock text-slate-400"></i>}
+                                    onPressEnter={() => { handleAddKey(inputKey); setAuthType('token'); }}
+                                />
+                            </div>
+                        </Modal>
+
+                        {/* Changelog Add/Edit Modal */}
+                        <Modal
+                            title={<div className="flex items-center gap-2"><i className={`fa-solid ${editingChangelog ? 'fa-pen-to-square text-orange-500' : 'fa-plus-circle text-green-500'}`}></i><span className="font-semibold">{editingChangelog ? '编辑版本' : '新增版本'}</span></div>}
+                            open={changelogModalVisible}
+                            onCancel={() => { setChangelogModalVisible(false); setEditingChangelog(null); changelogForm.resetFields(); }}
+                            footer={null}
+                            width={640}
+                            centered
+                            destroyOnHidden
+                        >
+                            <Form
+                                form={changelogForm}
+                                layout="vertical"
+                                onFinish={handleSaveChangelog}
+                                className="mt-4"
+                            >
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Form.Item
+                                        name="version"
+                                        label={<span className="font-medium">版本号</span>}
+                                        rules={[{ required: true, message: '请输入版本号' }]}
+                                    >
+                                        <Input placeholder="例如: v2.0.3" prefix={<i className="fa-solid fa-tag text-slate-400"></i>} />
+                                    </Form.Item>
+                                    <Form.Item
+                                        name="date"
+                                        label={<span className="font-medium">日期</span>}
+                                        rules={[{ required: true, message: '请输入日期' }]}
+                                    >
+                                        <Input placeholder="例如: 2026-02-16" prefix={<i className="fa-regular fa-calendar text-slate-400"></i>} />
+                                    </Form.Item>
+                                </div>
+
+                                <Form.Item
+                                    name="items"
+                                    label={<span className="font-medium">更新内容 <span className="text-slate-400 font-normal">(每行一条)</span></span>}
+                                    rules={[{ required: true, message: '请输入更新内容' }]}
+                                >
+                                    <Input.TextArea
+                                        rows={5}
+                                        placeholder={"优化了某某功能\n修复了某某问题\n新增了某某特性"}
+                                        className="font-mono text-sm"
+                                    />
+                                </Form.Item>
+
+                                <Form.List name="links">
+                                    {(fields, { add, remove }) => (
+                                        <div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="font-medium text-sm text-slate-700 dark:text-gray-300">
+                                                    <i className="fa-solid fa-link text-slate-400 mr-1.5"></i>下载链接 <span className="text-slate-400 font-normal">(可选)</span>
+                                                </span>
+                                                <Button type="dashed" size="small" onClick={() => add()} icon={<PlusOutlined />}>添加链接</Button>
+                                            </div>
+                                            {fields.map(({ key, name, ...restField }) => (
+                                                <div key={key} className="flex gap-2 mb-2">
+                                                    <Form.Item {...restField} name={[name, 'text']} className="flex-1 mb-0">
+                                                        <Input placeholder="链接文本 (如: 安装版下载)" size="small" />
+                                                    </Form.Item>
+                                                    <Form.Item {...restField} name={[name, 'url']} className="flex-[2] mb-0">
+                                                        <Input placeholder="下载 URL" size="small" />
+                                                    </Form.Item>
+                                                    <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => remove(name)} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </Form.List>
+
+                                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100 dark:border-[#30363d]">
+                                    <Button onClick={() => { setChangelogModalVisible(false); setEditingChangelog(null); }}>取消</Button>
+                                    <Button type="primary" htmlType="submit">
+                                        <i className="fa-solid fa-check mr-1.5"></i>
+                                        {editingChangelog ? '保存修改' : '添加版本'}
+                                    </Button>
+                                </div>
+                            </Form>
+                        </Modal>
+                    </Layout>
+                </ConfigProvider>
+            );
+        };
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

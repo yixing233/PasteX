@@ -1,0 +1,35 @@
+html {
+  --uno: text-color-1 antialiased select-none overscroll-none;
+
+  color-scheme: light;
+
+  &.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    --uno: text-sm;
+
+    * {
+      outline: none !important;
+    }
+
+    img {
+      -webkit-user-drag: none;
+    }
+
+    a {
+      --uno: "hover:color-primary";
+    }
+
+    mark {
+      background-color: #ffe58f;
+    }
+
+    .ant-image-preview-wrap {
+      background: rgba(0, 0, 0, 0.2) !important;
+      backdrop-filter: blur(10px);
+    }
+  }
+
+}

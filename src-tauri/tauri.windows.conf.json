@@ -1,0 +1,16 @@
+{
+  "bundle": {
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "nsis": {
+        "displayLanguageSelector": true,
+        "installMode": "currentUser",
+        "languages": ["English", "SimpChinese"]
+      },
+      "wix": {
+        "language": ["zh-CN", "en-US"]
+      }
+    }
+  },
+  "identifier": "com.pastex.app"
+}
