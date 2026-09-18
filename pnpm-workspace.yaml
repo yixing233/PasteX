@@ -1,0 +1,12 @@
+# pnpm 10 读取 onlyBuiltDependencies，pnpm 11+ 读取 allowBuilds；两个键都保留，
+# 以保证任意版本的 pnpm 都允许下列依赖执行安装脚本。缺少该配置时
+# `pnpm install --frozen-lockfile` 会以 ERR_PNPM_IGNORED_BUILDS 失败。
+onlyBuiltDependencies:
+  - "@parcel/watcher"
+  - esbuild
+  - simple-git-hooks
+
+allowBuilds:
+  "@parcel/watcher": true
+  esbuild: true
+  simple-git-hooks: true

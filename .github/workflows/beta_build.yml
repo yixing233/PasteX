@@ -78,7 +78,7 @@ jobs:
         run: |
           matrix=""
           if [ "${{ github.event_name }}" == "schedule" ]; then
-            matrix="\"windows-latest\",\"ubuntu-24.04\",\"macos-latest\""
+            matrix="\"windows-latest\""
             retain_days='1'
           else
             if [ "${{ inputs.platform_windows }}" == "true" ]; then
@@ -133,7 +133,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: latest
+          version: 10.24.0
 
       - name: Install Node.js
         uses: actions/setup-node@v4
